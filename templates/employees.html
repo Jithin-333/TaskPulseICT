@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Employees — TaskPulse{% endblock %}
+{% block page_title %}Employee Status{% endblock %}
+{% block content %}
+
+<div class="tp-card mb-4">
+  <div style="font-size:0.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.75rem;">Workload Distribution</div>
+  <div class="chart-wrap"><img src="data:image/png;base64,{{ chart }}" alt="employee chart"></div>
+</div>
+
+<div class="row g-3">
+{% for ed in employee_data %}
+{% set u = ed.user %}
+{% set completion_pct = (ed.completed / ed.total * 100)|round|int if ed.total > 0 else 0 %}
+{% set health_color = 'var(--accent3)' if ed.avg_progress >= 70 else 'var(--warn)' if ed.avg_progress >= 40 else 'var(--danger)' %}
+<div class="col-md-6 col-lg-4">
+  <div class="tp-card">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:white;flex-shrink:0;">
+        {{ u.username[0].upper() }}
+      </div>
+      <div>
+        <div style="font-weight:600;">{{ u.username }}</div>
+        <div style="font-size:0.72rem;color:var(--text2);">{{ u.email }}</div>
+      </div>
+      {% if ed.high_risk > 0 %}
+      <span class="ms-auto badge risk-high status-badge">{{ ed.high_risk }} at risk</span>
+      {% else %}
+      <span class="ms-auto badge risk-low status-badge">On track</span>
+      {% endif %}
+    </div>
+    <div class="row g-2 mb-3">
+      <div class="col-4 text-center">
+        <div class="mono" style="font-size:1.1rem;font-weight:700;color:var(--accent);">{{ ed.total }}</div>
+        <div style="font-size:0.65rem;color:var(--text2);text-transform:uppercase;">Assigned</div>
+      </div>
+      <div class="col-4 text-center">
+        <div class="mono" style="font-size:1.1rem;font-weight:700;color:var(--accent3);">{{ ed.completed }}</div>
+        <div style="font-size:0.65rem;color:var(--text2);text-transform:uppercase;">Done</div>
+      </div>
+      <div class="col-4 text-center">
+        <div class="mono" style="font-size:1.1rem;font-weight:700;color:var(--accent2);">{{ ed.in_progress }}</div>
+        <div style="font-size:0.65rem;color:var(--text2);text-transform:uppercase;">Active</div>
+      </div>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <span style="font-size:0.75rem;color:var(--text2);">Avg Progress</span>
+      <span class="mono" style="font-size:0.78rem;color:{{ health_color }};">{{ ed.avg_progress }}%</span>
+    </div>
+    <div class="progress mb-2" style="height:5px;">
+      <div class="progress-bar" style="width:{{ ed.avg_progress }}%;background:{{ health_color }};"></div>
+    </div>
+    <div class="d-flex justify-content-between align-items-center">
+      <span style="font-size:0.75rem;color:var(--text2);">Completion Rate</span>
+      <span class="mono" style="font-size:0.78rem;color:var(--text);">{{ completion_pct }}%</span>
+    </div>
+    <div class="progress" style="height:5px;">
+      <div class="progress-bar" style="width:{{ completion_pct }}%;background:var(--accent3);"></div>
+    </div>
+    {% if ed.tasks %}
+    <div class="mt-3">
+      <div style="font-size:0.68rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Recent Tasks</div>
+      {% for t in ed.tasks[:3] %}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.06);">
+        <span style="font-size:0.78rem;color:var(--text);">{{ t.title[:25] }}{% if t.title|length > 25 %}…{% endif %}</span>
+        <span style="font-size:0.68rem;color:{% if t.status=='Completed' %}var(--accent3){% elif t.status=='In Progress' %}var(--accent){% else %}var(--text2){% endif %};">{{ t.progress|int }}%</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<div class="col-12">
+  <div class="tp-card text-center py-5" style="color:var(--text2);">
+    <div style="font-size:2.5rem;margin-bottom:0.75rem;">👥</div>
+    <div>No team members registered yet.</div>
+  </div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}

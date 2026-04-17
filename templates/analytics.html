@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Analytics — TaskPulse{% endblock %}
+{% block page_title %}Analytics Overview{% endblock %}
+
+{% block content %}
+
+<!-- Top KPI Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-2">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(79,142,247,0.15);">📁</div>
+      <div>
+        <div class="stat-num" style="color:var(--accent);">{{ projects|length }}</div>
+        <div class="stat-label">Projects</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(139,92,246,0.15);">🎯</div>
+      <div>
+        <div class="stat-num" style="color:var(--accent2);">{{ total_tasks }}</div>
+        <div class="stat-label">Total Tasks</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(6,214,160,0.15);">✅</div>
+      <div>
+        <div class="stat-num" style="color:var(--accent3);">{{ total_completed }}</div>
+        <div class="stat-label">Completed</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(244,63,94,0.15);">🔥</div>
+      <div>
+        <div class="stat-num" style="color:var(--danger);">{{ total_high_risk }}</div>
+        <div class="stat-label">High Risk</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(245,158,11,0.15);">⏰</div>
+      <div>
+        <div class="stat-num" style="color:var(--warn);">{{ total_overdue }}</div>
+        <div class="stat-label">Overdue</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(79,142,247,0.15);">⚡</div>
+      <div>
+        <div class="stat-num mono" style="color:var(--accent);font-size:1.1rem;">{{ avg_health }}
+          <span style="font-size:0.7rem;color:var(--text2);">/100</span>
+        </div>
+        <div class="stat-label">Avg Health</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Completion rate bar -->
+{% if total_tasks > 0 %}
+{% set comp_pct = (total_completed / total_tasks * 100)|round|int %}
+<div class="tp-card mb-4">
+  <div class="d-flex justify-content-between mb-2">
+    <span style="font-size:0.82rem;color:var(--text2);font-weight:500;">
+      Portfolio Completion Rate
+      <span style="color:var(--text);"> — {{ total_completed }} of {{ total_tasks }} tasks done</span>
+    </span>
+    <span class="mono" style="font-size:1rem;font-weight:700;color:{% if comp_pct >= 70 %}var(--accent3){% elif comp_pct >= 40 %}var(--warn){% else %}var(--danger){% endif %};">{{ comp_pct }}%</span>
+  </div>
+  <div class="progress" style="height:10px;">
+    <div class="progress-bar" data-width="{{ comp_pct }}"
+      style="width:{{ comp_pct }}%;background:{% if comp_pct >= 70 %}var(--accent3){% elif comp_pct >= 40 %}var(--warn){% else %}var(--danger){% endif %};transition:width 1.2s ease;">
+    </div>
+  </div>
+  <div class="d-flex justify-content-between mt-1">
+    <span style="font-size:0.7rem;color:var(--text2);">{{ total_hours }}h total estimated</span>
+    <span style="font-size:0.7rem;color:var(--text2);">{{ total_overdue }} task{{ 's' if total_overdue != 1 else '' }} overdue</span>
+  </div>
+</div>
+{% endif %}
+
+<!-- Cross-project charts -->
+{% if cross_chart %}
+<div class="tp-card mb-4">
+  <div class="card-label">📊 Cross-Project Comparison</div>
+  <div class="chart-wrap"><img src="data:image/png;base64,{{ cross_chart }}" alt="cross-project"></div>
+</div>
+{% endif %}
+
+{% if timeline_chart %}
+<div class="tp-card mb-4">
+  <div class="card-label">🎯 Risk Scatter — All Active Tasks</div>
+  <div class="chart-wrap"><img src="data:image/png;base64,{{ timeline_chart }}" alt="timeline"></div>
+  <div style="font-size:0.72rem;color:var(--text2);margin-top:0.5rem;">
+    Bubble size = estimated hours &nbsp;·&nbsp; X-axis = days until deadline &nbsp;·&nbsp; Y-axis = progress%
+  </div>
+</div>
+{% endif %}
+
+<!-- Project breakdown table -->
+{% if rows %}
+<div class="tp-card mb-4">
+  <div class="card-label">Project-by-Project Breakdown</div>
+  <div class="table-responsive">
+    <table class="tp-table">
+      <thead>
+        <tr>
+          <th>Project</th>
+          <th>Health</th>
+          <th>Tasks</th>
+          <th>Done</th>
+          <th>High Risk</th>
+          <th>Overdue</th>
+          <th>Avg Progress</th>
+          <th>Est. Hours</th>
+          <th>Deadline</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in rows %}
+        {% set h = r.health %}
+        {% set hc = 'var(--accent3)' if h >= 70 else 'var(--warn)' if h >= 40 else 'var(--danger)' %}
+        {% set comp_r = (r.completed / r.total * 100)|round|int if r.total else 0 %}
+        <tr>
+          <td style="font-weight:600;">{{ r.project.name }}</td>
+          <td>
+            <span class="mono" style="font-size:0.9rem;font-weight:700;color:{{ hc }};">{{ h|int }}</span>
+            <span style="font-size:0.68rem;color:var(--text2);">/100</span>
+          </td>
+          <td class="mono">{{ r.total }}</td>
+          <td>
+            <span style="color:var(--accent3);" class="mono">{{ r.completed }}</span>
+            <div class="progress mt-1" style="height:3px;min-width:50px;">
+              <div class="progress-bar" style="width:{{ comp_r }}%;background:var(--accent3);"></div>
+            </div>
+          </td>
+          <td>
+            {% if r.high_risk > 0 %}
+            <span class="badge risk-high badge-risk">{{ r.high_risk }}</span>
+            {% else %}
+            <span style="color:var(--accent3);font-size:0.8rem;">✓ None</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if r.overdue > 0 %}
+            <span style="color:var(--danger);" class="mono">{{ r.overdue }}</span>
+            {% else %}
+            <span style="color:var(--accent3);">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="mono" style="color:{{ hc }};">{{ r.avg_prog }}%</span>
+            <div class="progress mt-1" style="height:3px;min-width:60px;">
+              <div class="progress-bar" style="width:{{ r.avg_prog }}%;background:{{ hc }};"></div>
+            </div>
+          </td>
+          <td class="mono" style="color:var(--text2);">{{ r.total_hrs }}h</td>
+          <td style="font-size:0.8rem;color:var(--text2);">{{ r.project.deadline.strftime('%b %d, %Y') }}</td>
+          <td>
+            <a href="{{ url_for('project_detail', pid=r.project.id) }}"
+               style="font-size:0.75rem;padding:3px 10px;border-radius:5px;background:rgba(79,142,247,0.1);color:var(--accent);border:1px solid rgba(79,142,247,0.2);">
+              View
+            </a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Empty state -->
+{% if not rows %}
+<div class="tp-card">
+  <div class="empty-state">
+    <div class="empty-icon">📊</div>
+    <div class="empty-title">No analytics data yet</div>
+    <div class="empty-sub">
+      <a href="{{ url_for('new_project') }}" style="color:var(--accent);">Create a project</a> and add tasks to see analytics.
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

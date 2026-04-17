@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block auth_content %}
+<div style="min-height:100vh;background:var(--bg);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(79,142,247,0.06) 0%,transparent 70%);pointer-events:none;"></div>
+  <div style="width:100%;max-width:420px;padding:1.5rem;position:relative;z-index:1;">
+    <div class="text-center mb-4">
+      <div style="font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px;">⚡ TaskPulse</div>
+      <div style="font-size:0.7rem;color:var(--text2);letter-spacing:3px;text-transform:uppercase;margin-top:4px;">Intelligent Project Intelligence</div>
+    </div>
+    <div class="tp-card" style="box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
+      <h5 class="mb-4" style="font-weight:600;">Welcome back</h5>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+      <form method="POST">
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" placeholder="you@company.com" required>
+        </div>
+        <div class="mb-4">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100" style="border-radius:8px;font-weight:600;padding:.65rem;">Sign In</button>
+      </form>
+      <div class="text-center mt-3" style="font-size:0.82rem;color:var(--text2);">
+        No account? <a href="{{ url_for('register') }}" style="color:var(--accent);">Create one</a>
+      </div>
+    </div>
+    <div class="mt-4 tp-card" style="background:rgba(79,142,247,0.04);border-color:rgba(79,142,247,0.1);box-shadow:none;">
+      <div style="font-size:0.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Demo Credentials</div>
+      <div style="font-size:0.8rem;font-family:'JetBrains Mono',monospace;">
+        <div>👑 manager@taskpulse.com / manager123</div>
+        <div>👤 alice@taskpulse.com / member123</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

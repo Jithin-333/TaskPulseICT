@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{% if task %}Edit Task{% else %}New Task{% endif %} — TaskPulse{% endblock %}
+{% block page_title %}{% if task %}Edit Task{% else %}New Task{% endif %}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="tp-card">
+      <div style="font-size:0.72rem;color:var(--text2);margin-bottom:0.5rem;">Project: <span style="color:var(--accent);">{{ project.name }}</span></div>
+      <h5 class="mb-4" style="font-weight:600;">{% if task %}Edit{% else %}Add{% endif %} Task</h5>
+      <form method="POST">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Task Title</label>
+            <input type="text" name="title" class="form-control" placeholder="e.g. Build login API" value="{{ task.title if task else '' }}" required>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control" rows="2" placeholder="Task details...">{{ task.description if task else '' }}</textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Assign To</label>
+            <select name="assigned_to" class="form-select">
+              <option value="">— Unassigned —</option>
+              {% for u in users %}
+              <option value="{{ u.id }}" {% if task and task.assigned_to == u.id %}selected{% endif %}>{{ u.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Deadline</label>
+            <input type="date" name="deadline" class="form-control" value="{{ task.deadline.strftime('%Y-%m-%d') if task else '' }}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Estimated Hours</label>
+            <input type="number" name="estimated_hours" class="form-control" min="0.5" step="0.5" placeholder="8" value="{{ task.estimated_hours if task else 8 }}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Priority</label>
+            <select name="priority" class="form-select">
+              <option value="Low" {% if task and task.priority == 'Low' %}selected{% endif %}>Low</option>
+              <option value="Medium" {% if not task or task.priority == 'Medium' %}selected{% endif %}>Medium</option>
+              <option value="High" {% if task and task.priority == 'High' %}selected{% endif %}>High</option>
+            </select>
+          </div>
+          {% if task %}
+          <div class="col-md-6">
+            <label class="form-label">Progress: <span id="prog-val">{{ task.progress|int }}</span>%</label>
+            <input type="range" name="progress" class="form-range" min="0" max="100" value="{{ task.progress|int }}"
+              oninput="document.getElementById('prog-val').textContent=this.value">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select">
+              <option value="Not Started" {% if task.status == 'Not Started' %}selected{% endif %}>Not Started</option>
+              <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+              <option value="Completed" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
+              <option value="On Hold" {% if task.status == 'On Hold' %}selected{% endif %}>On Hold</option>
+            </select>
+          </div>
+          {% endif %}
+          <div class="col-12 d-flex gap-2 mt-2">
+            <button type="submit" class="btn btn-primary" style="border-radius:8px;font-weight:600;">
+              {% if task %}Save Changes{% else %}Create Task{% endif %}
+            </button>
+            <a href="{{ url_for('project_detail', pid=project.id) }}" class="btn btn-outline-accent">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

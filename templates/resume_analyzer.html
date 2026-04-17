@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Resume Analyzer — TaskPulse{% endblock %}
+{% block page_title %}Resume Analyzer{% endblock %}
+{% block content %}
+
+<div class="row g-4">
+  <!-- Input Form -->
+  <div class="col-lg-5">
+    <div class="tp-card">
+      <h5 style="font-weight:600;margin-bottom:0.25rem;">📄 Resume vs Job Description</h5>
+      <p style="font-size:0.8rem;color:var(--text2);margin-bottom:1.25rem;">Upload a resume and paste a JD to get a data-driven match analysis.</p>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      {% endwith %}
+      <form method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label class="form-label">Resume File <span style="color:var(--text2);">(PDF / DOCX / TXT)</span></label>
+          <input type="file" name="resume_file" class="form-control" accept=".pdf,.doc,.docx,.txt">
+          <div style="font-size:0.72rem;color:var(--text2);margin-top:4px;">Or paste resume text below</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Resume Text</label>
+          <textarea name="resume_text" class="form-control" rows="6" placeholder="Paste resume content here..."></textarea>
+        </div>
+        <div class="mb-4">
+          <label class="form-label">Job Description</label>
+          <textarea name="job_description" class="form-control" rows="8" placeholder="Paste full job description here..." required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary w-100" style="border-radius:8px;font-weight:600;">
+          <i class="bi bi-graph-up me-2"></i>Analyze Match
+        </button>
+      </form>
+    </div>
+
+    {% if result %}
+    <!-- Score Summary -->
+    {% set score = result.analysis.match_score %}
+    {% set score_color = '#06d6a0' if score >= 70 else '#f59e0b' if score >= 40 else '#f43f5e' %}
+    <div class="tp-card mt-3" style="border-color:{{ score_color }}33;">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="font-size:2.5rem;font-weight:800;color:{{ score_color }};font-family:'JetBrains Mono',monospace;line-height:1;">{{ score }}%</div>
+        <div>
+          <div style="font-weight:600;">Match Score</div>
+          <div style="font-size:0.78rem;color:var(--text2);">
+            {% if score >= 70 %}Strong match — great candidate!{% elif score >= 40 %}Moderate fit — review gaps{% else %}Low match — significant gaps{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="progress mb-3" style="height:8px;">
+        <div class="progress-bar" style="width:{{ score }}%;background:{{ score_color }};"></div>
+      </div>
+      {% if result.analysis.matched %}
+      <div style="font-size:0.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">✅ Matched Keywords</div>
+      <div class="d-flex flex-wrap gap-1 mb-3">
+        {% for kw in result.analysis.matched %}
+        <span style="font-size:0.7rem;padding:2px 8px;border-radius:20px;background:rgba(6,214,160,0.12);color:var(--accent3);border:1px solid rgba(6,214,160,0.25);">{{ kw }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% if result.analysis.missing %}
+      <div style="font-size:0.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">❌ Missing Keywords</div>
+      <div class="d-flex flex-wrap gap-1">
+        {% for kw in result.analysis.missing %}
+        <span style="font-size:0.7rem;padding:2px 8px;border-radius:20px;background:rgba(244,63,94,0.12);color:var(--danger);border:1px solid rgba(244,63,94,0.25);">{{ kw }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Chart Panel -->
+  <div class="col-lg-7">
+    {% if result %}
+    <div class="tp-card">
+      <div style="font-size:0.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.75rem;">📊 Visual Analysis</div>
+      <div class="chart-wrap"><img src="data:image/png;base64,{{ result.chart }}" alt="resume analysis"></div>
+    </div>
+
+    <!-- Section Scores -->
+    <div class="tp-card mt-3">
+      <div style="font-size:0.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.75rem;">Resume Section Completeness</div>
+      <div class="row g-2">
+        {% for section, score in result.analysis.section_scores.items() %}
+        {% set sc = score|round|int %}
+        {% set sc_color = 'var(--accent3)' if sc >= 60 else 'var(--warn)' if sc >= 30 else 'var(--danger)' %}
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:0.82rem;font-weight:500;">{{ section }}</span>
+            <span class="mono" style="font-size:0.75rem;color:{{ sc_color }};">{{ sc }}%</span>
+          </div>
+          <div class="progress" style="height:5px;">
+            <div class="progress-bar" style="width:{{ sc }}%;background:{{ sc_color }};"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="tp-card mt-3">
+      <div style="font-size:0.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.75rem;">💡 Recommendations</div>
+      {% set score = result.analysis.match_score %}
+      {% if score >= 70 %}
+      <div class="insight-item insight-success"><div style="font-size:0.85rem;">✅ Strong match! This resume aligns well with the job description.</div></div>
+      <div class="insight-item insight-success"><div style="font-size:0.85rem;">📝 Consider adding specific metrics and achievements to stand out further.</div></div>
+      {% elif score >= 40 %}
+      <div class="insight-item insight-warning"><div style="font-size:0.85rem;">⚠️ Moderate match. Strengthen the resume by adding missing keywords naturally.</div></div>
+      <div class="insight-item insight-warning"><div style="font-size:0.85rem;">🎯 Focus on tailoring the experience section to match JD requirements.</div></div>
+      {% else %}
+      <div class="insight-item insight-danger"><div style="font-size:0.85rem;">🔴 Low match score. Major gaps between resume and job requirements.</div></div>
+      <div class="insight-item insight-danger"><div style="font-size:0.85rem;">📚 Consider upskilling or applying to positions that better match current experience.</div></div>
+      {% endif %}
+      {% if result.analysis.missing %}
+      <div class="insight-item insight-warning">
+        <div style="font-size:0.85rem;">🔍 Add these key skills if applicable: <strong>{{ result.analysis.missing[:5]|join(', ') }}</strong></div>
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="tp-card d-flex flex-column align-items-center justify-content-center" style="min-height:400px;">
+      <div style="font-size:4rem;margin-bottom:1rem;">🤖</div>
+      <div style="font-weight:600;font-size:1.1rem;margin-bottom:0.5rem;">AI Resume Analyzer</div>
+      <div style="font-size:0.85rem;color:var(--text2);text-align:center;max-width:280px;">
+        Upload a resume and paste a job description to get instant data-driven match analysis with visual insights.
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

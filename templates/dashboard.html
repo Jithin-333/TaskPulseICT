@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — TaskPulse{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(79,142,247,0.15);">📁</div>
+      <div>
+        <div class="stat-num" style="color:var(--accent);">{{ stats.total_projects }}</div>
+        <div class="stat-label">Projects</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(139,92,246,0.15);">🎯</div>
+      <div>
+        <div class="stat-num" style="color:var(--accent2);">{{ stats.total_tasks }}</div>
+        <div class="stat-label">Total Tasks</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(6,214,160,0.15);">✅</div>
+      <div>
+        <div class="stat-num" style="color:var(--accent3);">{{ stats.completed }}</div>
+        <div class="stat-label">Completed</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(244,63,94,0.15);">🔥</div>
+      <div>
+        <div class="stat-num" style="color:var(--danger);">{{ stats.high_risk }}</div>
+        <div class="stat-label">High Risk</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Avg Progress Bar -->
+<div class="tp-card mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <span style="font-size:0.82rem;color:var(--text2);font-weight:500;">Overall Portfolio Progress</span>
+    <span class="mono" style="font-size:1rem;color:var(--accent);font-weight:700;">{{ stats.avg_progress }}%</span>
+  </div>
+  <div class="progress" style="height:8px;">
+    <div class="progress-bar" style="width:{{ stats.avg_progress }}%;background:linear-gradient(90deg,var(--accent),var(--accent2));"></div>
+  </div>
+</div>
+
+<!-- Risk Overview Summary -->
+{% if stats.high_risk > 0 %}
+<div class="tp-card mb-4" style="border-color:rgba(244,63,94,0.3);background:rgba(244,63,94,0.04);">
+  <div class="d-flex align-items-center gap-3">
+    <div style="font-size:1.8rem;">🚨</div>
+    <div>
+      <div style="font-weight:600;color:var(--danger);">{{ stats.high_risk }} High-Risk Task{{ 's' if stats.high_risk > 1 else '' }} Detected</div>
+      <div style="font-size:0.78rem;color:var(--text2);">Review your projects below and take action on delayed or overdue tasks.</div>
+    </div>
+    <a href="#projects" class="btn btn-sm ms-auto" style="border-radius:6px;background:rgba(244,63,94,0.12);color:var(--danger);border:1px solid rgba(244,63,94,0.3);white-space:nowrap;">
+      View Issues <i class="bi bi-arrow-down ms-1"></i>
+    </a>
+  </div>
+</div>
+{% endif %}
+
+<!-- Projects Grid -->
+{% if project_data %}
+<div id="projects" class="mb-3 d-flex justify-content-between align-items-center">
+  <h6 style="font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1px;font-size:0.72rem;margin:0;">
+    {% if current_user.role == 'manager' %}Your Projects{% else %}Assigned Projects{% endif %}
+  </h6>
+  {% if current_user.role == 'manager' %}
+  <a href="{{ url_for('new_project') }}" class="btn btn-primary btn-sm" style="border-radius:6px;font-size:0.78rem;">
+    <i class="bi bi-plus-lg me-1"></i>New Project
+  </a>
+  {% endif %}
+</div>
+<div class="row g-3">
+{% for pd in project_data %}
+  {% set p = pd.project %}
+  {% set health = pd.health %}
+  {% set health_color = 'var(--accent3)' if health >= 70 else 'var(--warn)' if health >= 40 else 'var(--danger)' %}
+  <div class="col-md-6 col-lg-4">
+    <div class="tp-card h-100" style="cursor:pointer;" onclick="window.location='{{ url_for('project_detail', pid=p.id) }}'">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <div style="font-weight:600;font-size:0.95rem;">{{ p.name }}</div>
+          <div style="font-size:0.72rem;color:var(--text2);margin-top:2px;">
+            <i class="bi bi-calendar3 me-1"></i>Due {{ p.deadline.strftime('%b %d, %Y') }}
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:1.2rem;font-weight:800;color:{{ health_color }};font-family:'JetBrains Mono',monospace;">{{ health|int }}</div>
+          <div style="font-size:0.6rem;color:var(--text2);text-transform:uppercase;">Health</div>
+        </div>
+      </div>
+      {% if p.description %}
+      <div style="font-size:0.78rem;color:var(--text2);margin-bottom:1rem;line-height:1.4;">{{ p.description[:80] }}{% if p.description|length > 80 %}…{% endif %}</div>
+      {% endif %}
+      <div class="d-flex gap-2 mb-3">
+        <span class="badge risk-low status-badge">{{ pd.risk_counts.Low }} Low</span>
+        <span class="badge risk-medium status-badge">{{ pd.risk_counts.Medium }} Med</span>
+        <span class="badge risk-high status-badge">{{ pd.risk_counts.High }} High</span>
+      </div>
+      <div class="d-flex justify-content-between align-items-center">
+        <div style="font-size:0.75rem;color:var(--text2);">{{ pd.completed }}/{{ pd.total }} tasks done</div>
+        <div style="font-size:0.75rem;color:var(--text2);">
+          {% if pd.total > 0 %}{{ (pd.completed/pd.total*100)|round|int }}%{% else %}0%{% endif %}
+        </div>
+      </div>
+      <div class="progress mt-1" style="height:4px;">
+        <div class="progress-bar" style="width:{% if pd.total > 0 %}{{ (pd.completed/pd.total*100)|round|int }}{% else %}0{% endif %}%;background:{{ health_color }};"></div>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+</div>
+{% else %}
+<div class="tp-card text-center py-5">
+  <div style="font-size:3rem;margin-bottom:1rem;">📋</div>
+  <div style="font-weight:600;margin-bottom:0.5rem;">No projects yet</div>
+  <div style="font-size:0.82rem;color:var(--text2);">
+    {% if current_user.role == 'manager' %}
+      <a href="{{ url_for('new_project') }}" style="color:var(--accent);">Create your first project</a>
+    {% else %}
+      No tasks have been assigned to you yet.
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

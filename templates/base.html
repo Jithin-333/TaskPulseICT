@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}TaskPulse{% endblock %}</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/taskpulse.css">
+<style>
+:root {
+  --bg: #f0f2f5;
+  --bg2: #ffffff;
+  --card: #ffffff;
+  --card2: #f8f9fa;
+  --border: #dee2e6;
+  --accent: #4f8ef7;
+  --accent2: #8b5cf6;
+  --accent3: #06d6a0;
+  --danger: #f43f5e;
+  --warn: #f59e0b;
+  --text: #1c1e21;
+  --text2: #65676b;
+  --glow: 0 4px 20px rgba(0,0,0,0.06);
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
+body::before { content:''; position:fixed; inset:0; background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79,142,247,0.05) 0%, transparent 60%); pointer-events:none; z-index:0; }
+
+/* SIDEBAR */
+.sidebar { width: 240px; min-height: 100vh; background: var(--bg2); border-right: 1px solid var(--border); position: fixed; top:0; left:0; z-index:100; display:flex; flex-direction:column; transition: all .3s; }
+.sidebar-brand { padding: 1.5rem 1.25rem 1rem; border-bottom: 1px solid var(--border); }
+.sidebar-brand .logo { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.sidebar-brand .tagline { font-size: 0.65rem; color: var(--text2); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+.sidebar-nav { flex:1; padding: 1rem 0; }
+.nav-section { font-size: 0.6rem; color: var(--text2); letter-spacing: 2px; text-transform: uppercase; padding: 0.5rem 1.25rem 0.25rem; }
+.sidebar-nav a { display:flex; align-items:center; gap: 0.75rem; padding: 0.6rem 1.25rem; color: var(--text2); text-decoration:none; font-size: 0.88rem; font-weight:500; border-left: 3px solid transparent; transition: all .2s; }
+.sidebar-nav a:hover, .sidebar-nav a.active { color: var(--accent); background: rgba(79,142,247,0.12); border-left-color: var(--accent); }
+.sidebar-nav a i { font-size: 1rem; width: 18px; }
+.sidebar-footer { padding: 1rem 1.25rem; border-top: 1px solid var(--border); }
+.user-pill { display:flex; align-items:center; gap: 0.6rem; }
+.avatar { width:32px; height:32px; border-radius:50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display:flex; align-items:center; justify-content:center; font-size: 0.8rem; font-weight:700; color: white; flex-shrink:0; }
+.user-name { font-size: 0.82rem; font-weight:600; }
+.user-role { font-size: 0.68rem; color: var(--text2); }
+
+/* MAIN */
+.main-wrap { margin-left: 240px; min-height:100vh; position:relative; z-index:1; }
+.topbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0.75rem 1.75rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+.topbar-title { font-size: 1.1rem; font-weight:600; }
+.content { padding: 1.75rem; }
+
+/* CARDS */
+.tp-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+.tp-card:hover { border-color: rgba(79,142,247,0.3); box-shadow: var(--glow); transition: all .25s; }
+.stat-card { background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.25rem; display:flex; align-items:center; gap:1rem; }
+.stat-icon { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0; }
+.stat-num { font-size: 1.6rem; font-weight:700; line-height:1; font-family: 'JetBrains Mono', monospace; }
+.stat-label { font-size: 0.72rem; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; }
+
+/* PROGRESS */
+.progress { background: rgba(0,0,0,0.06); border-radius: 20px; height: 6px; }
+.progress-bar { border-radius: 20px; transition: width 1s ease; }
+
+/* BADGES */
+.risk-low { background: rgba(6,214,160,0.15); color: #06d6a0; border: 1px solid rgba(6,214,160,0.3); }
+.risk-medium { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+.risk-high { background: rgba(244,63,94,0.15); color: #f43f5e; border: 1px solid rgba(244,63,94,0.3); }
+.status-badge { font-size: 0.68rem; padding: 2px 8px; border-radius: 20px; font-weight:500; }
+
+/* TABLES */
+.tp-table { width:100%; }
+.tp-table th { font-size: 0.68rem; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); font-weight:500; }
+.tp-table td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 0.87rem; }
+.tp-table tr:last-child td { border-bottom: none; }
+.tp-table tbody tr:hover td { background: rgba(79,142,247,0.06); }
+
+/* HEALTH SCORE */
+.health-ring { position:relative; display:inline-flex; align-items:center; justify-content:center; }
+
+/* INSIGHT */
+.insight-item { padding: 0.75rem 1rem; border-radius:8px; margin-bottom:0.5rem; border-left: 3px solid; }
+.insight-danger { background: rgba(244,63,94,0.08); border-color: var(--danger); }
+.insight-warning { background: rgba(245,158,11,0.08); border-color: var(--warn); }
+.insight-success { background: rgba(6,214,160,0.08); border-color: var(--accent3); }
+
+/* BUTTONS */
+.btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+.btn-primary:hover { background: #3b7de8; border-color: #3b7de8; }
+.btn-outline-accent { border: 1px solid var(--accent); color: var(--accent); background: transparent; border-radius:8px; }
+.btn-outline-accent:hover { background: rgba(79,142,247,0.1); color: var(--accent); }
+
+/* FORM */
+.form-control, .form-select { background: var(--card2); border: 1px solid var(--border); color: var(--text); border-radius:8px; }
+.form-control:focus, .form-select:focus { background: var(--card2); color: var(--text); border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,142,247,0.15); }
+.form-control::placeholder { color: var(--text2); }
+.form-label { font-size: 0.82rem; font-weight:500; color: var(--text2); margin-bottom:4px; }
+textarea.form-control { resize:vertical; }
+.form-select option { background: var(--card); }
+
+/* CHART */
+.chart-wrap img { border-radius: 10px; width:100%; }
+
+/* ALERT */
+.alert { border-radius:8px; border: 1px solid; }
+.alert-success { background: rgba(6,214,160,0.1); border-color: rgba(6,214,160,0.3); color: var(--accent3); }
+.alert-danger { background: rgba(244,63,94,0.1); border-color: rgba(244,63,94,0.3); color: var(--danger); }
+.alert-warning { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); color: var(--warn); }
+.alert-info { background: rgba(79,142,247,0.1); border-color: rgba(79,142,247,0.3); color: var(--accent); }
+
+/* MONO */
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* pulse dot */
+.pulse-dot { width:8px; height:8px; border-radius:50%; background: var(--accent3); display:inline-block; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(6,214,160,0.6); } 50%{ box-shadow: 0 0 0 6px rgba(6,214,160,0); } }
+
+/* RANGE */
+input[type=range] { accent-color: var(--accent); }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+@media(max-width:768px) {
+  .sidebar { width:60px; }
+  .sidebar-brand .logo, .sidebar-brand .tagline, .sidebar-nav a span, .user-name, .user-role, .nav-section { display:none; }
+  .sidebar-nav a { justify-content:center; }
+  .main-wrap { margin-left:60px; }
+}
+</style>
+{% block head %}{% endblock %}
+</head>
+<body>
+{% if current_user.is_authenticated %}
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo">⚡ TaskPulse</div>
+    <div class="tagline">Intelligence Engine</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+      <i class="bi bi-grid-1x2"></i><span>Dashboard</span>
+    </a>
+    {% if current_user.role == 'manager' %}
+    <a href="{{ url_for('new_project') }}" class="{% if request.endpoint == 'new_project' %}active{% endif %}">
+      <i class="bi bi-folder-plus"></i><span>New Project</span>
+    </a>
+    {% endif %}
+    <div class="nav-section">Analysis</div>
+    <a href="{{ url_for('analytics') }}" class="{% if request.endpoint == 'analytics' %}active{% endif %}">
+      <i class="bi bi-bar-chart-line"></i><span>Analytics</span>
+    </a>
+    <a href="{{ url_for('employees') }}" class="{% if request.endpoint == 'employees' %}active{% endif %}">
+      <i class="bi bi-people"></i><span>Employees</span>
+    </a>
+    <a href="{{ url_for('resume_analyzer') }}" class="{% if request.endpoint == 'resume_analyzer' %}active{% endif %}">
+      <i class="bi bi-file-earmark-person"></i><span>Resume Analyzer</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="avatar">{{ current_user.username[0].upper() }}</div>
+      <div>
+        <div class="user-name">{{ current_user.username }}</div>
+        <div class="user-role">{{ current_user.role.title() }}</div>
+      </div>
+    </div>
+    <a href="{{ url_for('logout') }}" class="d-flex align-items-center gap-2 mt-2" style="color:var(--text2);text-decoration:none;font-size:0.8rem;">
+      <i class="bi bi-box-arrow-left"></i><span>Logout</span>
+    </a>
+  </div>
+</div>
+<div class="main-wrap">
+  <div class="topbar">
+    <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+    <div class="d-flex align-items-center gap-3">
+      <span class="pulse-dot"></span>
+      <span style="font-size:0.75rem;color:var(--text2);">Live</span>
+      <!-- Notification Bell -->
+      <div class="position-relative" style="cursor:pointer;" onclick="toggleNotifs()">
+        <i class="bi bi-bell" style="font-size:1.1rem;color:var(--text2);"></i>
+        <span id="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--danger);border-radius:50%;font-size:0.6rem;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;" id="notif-count">0</span>
+      </div>
+      <div id="notif-panel" style="display:none;position:absolute;top:55px;right:20px;width:320px;background:var(--card);border:1px solid var(--border);border-radius:10px;z-index:200;box-shadow:0 8px 30px rgba(0,0,0,0.15);">
+        <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);font-size:0.75rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1px;">🔔 Alerts</div>
+        <div id="notif-list" style="max-height:260px;overflow-y:auto;padding:0.5rem;"></div>
+      </div>
+      <span class="badge" style="background:rgba(79,142,247,0.15);color:var(--accent);font-size:0.7rem;">
+        {% if current_user.role == 'manager' %}👑 Manager{% else %}👤 Member{% endif %}
+      </span>
+    </div>
+  </div>
+  <div class="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+{% else %}
+{% block auth_content %}{% endblock %}
+{% endif %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/taskpulse.js"></script>
+<script>
+function toggleNotifs() {
+  const panel = document.getElementById('notif-panel');
+  if(panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('notif-panel');
+  if (panel && !e.target.closest('#notif-panel') && !e.target.closest('.bi-bell')) panel.style.display = 'none';
+});
+function loadNotifications() {
+  fetch('/api/notifications').then(r=>r.json()).then(d=>{
+    const badge = document.getElementById('notif-badge');
+    const list = document.getElementById('notif-list');
+    if (!badge || !list) return;
+    badge.textContent = d.count;
+    badge.style.display = d.count > 0 ? 'flex' : 'none';
+    list.innerHTML = d.items && d.items.length > 0
+      ? d.items.map(n=>`<div style="padding:.5rem .6rem;border-radius:6px;margin-bottom:4px;background:rgba(${n.type==='danger'?'244,63,94':'245,158,11'},.1);border-left:3px solid var(--${n.type==='danger'?'danger':'warn'});"><div style="font-size:.78rem;">${n.msg}</div></div>`).join('')
+      : '<div style="padding:.75rem;font-size:.8rem;color:var(--text2);text-align:center;">No active alerts</div>';
+  }).catch(()=>{});
+}
+document.addEventListener('DOMContentLoaded', function(){
+  loadNotifications();
+  setInterval(loadNotifications, 30000);
+});
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
