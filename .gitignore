@@ -28,7 +28,7 @@ env.bak/
 venv.bak/
 
 # Flask / Instance
-instance/
+
 .webassets-cache
 
 # Uploads
