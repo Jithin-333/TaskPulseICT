@@ -8,7 +8,6 @@ TaskPulse is a centralized Flask application designed for project management, ri
 - `static/`: Contains CSS, JS, and image assets.
 - `templates/`: HTML Jinja2 templates for the frontend.
 - `instance/`: Holds the `taskpulse.db` SQLite database.
-- `uploads/`: Temporary storage for resume files during analysis.
 - `venv/`: Python virtual environment.
 
 ## 🧩 Functional Modules
