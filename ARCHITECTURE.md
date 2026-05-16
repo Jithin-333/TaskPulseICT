@@ -43,13 +43,6 @@ Although implemented within a monolithic `app.py`, the system is functionally di
     - **Employee Workload**: Comparative analysis of assigned vs. completed tasks per team member.
 - **Rendering**: Charts are generated on-the-fly, converted to Base64 strings, and injected directly into HTML templates.
 
-### 5. Resume Analyzer Module
-- **Technology**: PyPDF2, python-docx, and Regular Expressions.
-- **Logic**:
-    - Extracts text from uploaded PDF/Docx/Txt files.
-    - Performs keyword frequency analysis against a Job Description.
-    - Categorizes matches into "Skills", "Experience", "Education", etc.
-    - Visualizes matching strength using gauges and bar charts.
 
 ## 🔄 Data Flow
 
