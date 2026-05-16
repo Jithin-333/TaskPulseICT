@@ -1,7 +1,7 @@
 # ⚡ TaskPulse — Intelligent Project Risk Analyzer
 
 A full-stack Flask web application: project management + AI risk detection +
-7 Matplotlib charts + team analytics + resume analyzer.
+7 Matplotlib charts + team analytics.
 
 ## 🚀 Quick Start
 
@@ -52,12 +52,6 @@ A full-stack Flask web application: project management + AI risk detection +
 ### Employee Dashboard
 - Per-member: tasks assigned, completed, in-progress, avg progress %
 - High-risk task count, recent task preview, workload chart
-
-### Resume Analyzer
-- Upload PDF / DOCX / TXT or paste text
-- Compare against job description → keyword match score
-- 4-panel visual: gauge, donut, section bars, keyword bars
-- Matched + missing keyword badges, recommendations
 
 ### Live Notifications
 - Bell icon in topbar polls /api/notifications every 30s
